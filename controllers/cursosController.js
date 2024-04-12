@@ -1,13 +1,9 @@
 const db = require('../database/conexion.js');
 
-class EstudiantesController {
-    constructor() {
-
-    }
-
+class CursosController {
     consultar(req, res) {
         try {
-            db.query(`SELECT * FROM estudiantes`,
+            db.query(`SELECT * FROM cursos`,
                 (err, rows) => {
                     if (err) {
                         res.status(400).send(err);
@@ -23,7 +19,7 @@ class EstudiantesController {
     consultarDetalle(req, res) {
         const { id } = req.params;
         try {
-            db.query(`SELECT * FROM estudiantes WHERE id = ?`, [id],
+            db.query(`SELECT * FROM cursos WHERE id = ?`, [id],
                 (err, rows) => {
                     if (err) {
                         res.status(400).send(err);
@@ -37,16 +33,17 @@ class EstudiantesController {
 
     ingresar(req, res) {
         try {
-            const { dni, nombre, apellido, email } = req.body;
-            db.query(`INSERT INTO estudiantes
-                        (id, dni, nombre, apellido, email)
-                        VALUES(NULL, ?, ?, ?, ?);`,
-                [dni, nombre, apellido, email], (err, rows) => {
+            const { nombre, descripcion, profesor_id } = req.body;
+            db.query(`INSERT INTO cursos
+                        (id, nombre, descripcion, profesor_id)
+                        VALUES(NULL, ?, ?, ?);`,
+                [nombre, descripcion, profesor_id], (err, rows) => {
                     if (err) {
-                        res.status(400).send(err);
-                    }
-                    if (rows.insertId)
+                        res.status(400).send(err.message);
+                    } else {
                         res.status(201).json({ id: rows.insertId });
+                    }
+
                 });
         } catch (err) {
             res.status(500).send(err.message);
@@ -56,11 +53,11 @@ class EstudiantesController {
     actualizar(req, res) {
         const { id } = req.params;
         try {
-            const { dni, nombre, apellido, email } = req.body;
-            db.query(`UPDATE estudiantes
-            SET dni = ?, nombre = ?, apellido = ?, email = ?
+            const { nombre, descripcion, profesor_id, } = req.body;
+            db.query(`UPDATE cursos
+            SET nombre = ?, descripcion = ?, profesor_id = ?
             WHERE id = ?;`,
-                [dni, nombre, apellido, email, id], (err, rows) => {
+                [nombre, descripcion, profesor_id, id], (err, rows) => {
                     if (err) {
                         res.status(400).send(err);
                     }
@@ -75,7 +72,7 @@ class EstudiantesController {
     borrar(req, res) {
         const { id } = req.params;
         try {
-            db.query(`DELETE FROM estudiantes WHERE id = ?;`,
+            db.query(`DELETE FROM cursos WHERE id = ?;`,
                 [id], (err, rows) => {
                     if (err) {
                         res.status(400).send(err);
@@ -87,6 +84,25 @@ class EstudiantesController {
             res.status(500).send(err.message);
         }
     }
+
+    asociarEstudiante(req, res) {
+        try {
+            const { curso_id, estudiante_id } = req.body;
+            db.query(`INSERT INTO cursos_estudiantes
+                        (curso_id, estudiante_id)
+                        VALUES(?, ?);`,
+                [curso_id, estudiante_id], (err, rows) => {
+                    if (err) {
+                        res.status(400).send(err.message);
+                    } else {
+                        res.status(201).json({ respuesta: 'Estudiante registrado con éxito' });
+                    }
+
+                });
+        } catch (err) {
+            res.status(500).send(err.message);
+        }
+    }
 }
 
-module.exports = new EstudiantesController();
+module.exports = new CursosController();
